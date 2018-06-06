@@ -261,8 +261,6 @@ if options.temporal_parallel
             S(O{jo}(:),:) = Stemp; 
             if p > 0
                 if strcmpi(method,'constrained_foopsi') || strcmpi(method,'MCMC');
-                    disp('b here?')
-                    disp(P.b)
                     P.b(O{jo}) = num2cell(btemp);
                     P.c1(O{jo}) = num2cell(c1temp);
                     P.neuron_sn(O{jo}) = num2cell(sntemp);

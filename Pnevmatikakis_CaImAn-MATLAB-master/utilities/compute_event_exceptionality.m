@@ -1,10 +1,10 @@
 function [fitness,erfc,sd_r,md] = compute_event_exceptionality(traces,N,robust_std)
 %{
     Define a metric and order components according to the probabilty if some "exceptional events" (like a spike).
-    Suvh probability is defined as the likeihood of observing the actual trace value over N samples given an estimated noise distribution.
+    Such probability is defined as the likeihood of observing the actual trace value over N samples given an estimated noise distribution.
     The function first estimates the noise distribution by considering the dispersion around the mode.
     This is done only using values lower than the mode. The estimation of the noise std is made robust by using the approximation std=iqr/1.349.
-    Then, the probavility of having N consecutive eventsis estimated.
+    Then, the probavility of having N consecutive events is estimated.
     This probability is used to order the components.
  
     
@@ -47,7 +47,6 @@ if robust_std
     ff1(ff1 == 0) = nan;
     Ns = round(sum(ff1 > 0, 2) * .5);
     iqr_h = zeros(size(traces,1));
-    idx = 1;
     for idx = 1:size(ff1,1) 
         el = ff1(idx,:);
         iqr_h(idx) = ff1(idx, -Ns(idx));
@@ -59,6 +58,7 @@ else
     Ns = sum(ff1 > 0, 2);
     sd_r = sqrt(sum(ff1.^2, 2)./ Ns);
 end
+
 % compute z value
 z = bsxfun(@times,bsxfun(@minus,traces,md'),1./(3 * sd_r));
 % probability of observing values larger or equal to z given normal
@@ -67,16 +67,30 @@ mu = 0;
 sigma = 1;
 pd = makedist('Normal',mu,sigma);
 erf = 1 - cdf(pd,z);
+
 % use logarithm so that multiplication becomes sum
 erf = log(erf);
 filt = ones(1,N);
+
 % moving sum
 erfc = conv2(1,filt,erf,'same');
-erfc = erfc(:,1:T);
+%  erfc = erfc(:,1:T);
+
+%  figure
+%  for i=1:size(erf,1)
+%    subplot(2,size(erf,1),i)
+%    plot(erf(i,:))
+%    ylim([-50,0])
+%    subplot(2,size(erf,1),size(erf,1) + i)
+%    hold on
+%    plot(erfc(i,:))
+%    plot([0 9000],[-50,-50],'k--')
+%    hold off
+%    ylim([-100,0])
+%  end
 
 % select the maximum value of such probability for each trace
 fitness = min(erfc, [], 2);
-
 % ordered = np.argsort(fitness)
 
 

@@ -1,6 +1,6 @@
 
 
-function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered)
+function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
     
     pathMouse = uigetdir('Choose a mouse folder to process (completely!)');
 %      pathMouse = '/media/wollex/Data/Documents/Uni/2016-XXXX_PhD/Japan/Work/Data/245';
@@ -28,47 +28,54 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered)
       disp(sprintf('\t ### Now processing session %d ###',s))
       path.handover = path.images;
       
-      if ~exist(path.H5,'file')
-	if scattered
-	  pathTmp = pathcat(path.session,'images');
-	  create_tiff_stacks(pathTmp,path.images,1000);
-	end
-	
-	%% median filtering
-	if sz_median
-	  if ~exist(path.median,'dir') 
-	      median_filter(path.images,path.median,parameter);
-	  else
-	      disp(sprintf('Path: %s already exists - skip median calculation',path.median))
-	  end
-	  path.handover = path.median;
-	else
-	  disp('---- median filtering disabled ----')
-	end
-    
-	% image alignment
-	if do_dewarp
-	  if ~exist(path.LKalign,'dir')
-	      tiff_align(path.handover,path.LKalign);
-	  else
-	      disp(sprintf('Path: %s already exists - skip image dewarping',path.LKalign))
-	  end
-	  path.handover = path.LKalign;
-	else
-	  disp('---- LK-dewarping disabled ----')
-	end
-	
-	tiff2h5(path.handover,path.H5);
+      if ~exist(path.H5,'file') || redo
+        if scattered
+          pathTmp = pathcat(path.session,'images');
+          create_tiff_stacks(pathTmp,path.images,1000);
+        end
+        
+        pathTmp = pathcat(path.session,'images');
+        if isempty(dir(pathcat(pathTmp,'*.tif')))
+          if ~isempty(dir(pathcat(pathTmp,'*.raw')))
+            raw2tiffstacks(pathIn);
+          end
+        end
+        
+        %% median filtering
+        if sz_median
+          if ~exist(path.median,'dir') || redo
+              median_filter(path.images,path.median,parameter);
+          else
+              disp(sprintf('Path: %s already exists - skip median calculation',path.median))
+          end
+          path.handover = path.median;
+        else
+          disp('---- median filtering disabled ----')
+        end
+        
+        % image alignment
+        if do_dewarp
+          if ~exist(path.LKalign,'dir') || redo
+              tiff_align(path.handover,path.LKalign);
+          else
+              disp(sprintf('Path: %s already exists - skip image dewarping',path.LKalign))
+          end
+          path.handover = path.LKalign;
+        else
+          disp('---- LK-dewarping disabled ----')
+        end
+        
+        tiff2h5(path.handover,path.H5);
       end
       
-      if ~exist(path.reduced,'file')
+      if ~exist(path.reduced,'file') || redo
           reduce_data(path.H5,path);
       else
           disp(sprintf('Path: %s already exists - skip reduced image calculation',path.reduced))
       end
       
       
-      if ~exist(path.CNMF,'file')
+      if ~exist(path.CNMF,'file') || redo
           disp('do CNMF')
           CNMF_frame(path,parameter.npatches,parameter.K,parameter.tau,0);
       else
@@ -81,7 +88,7 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered)
 %        else
 %            disp(sprintf('Path: %s already exists - skip CNMF post-procession',path.CNMF_post))
 %        end
-      rmdir(path.images,'s');
+%        rmdir(path.images,'s');
     end
 end
 
@@ -118,8 +125,8 @@ function [parameter] = set_parameter(sz_median)
     parameter.filtersize = [sz_median,sz_median,1];
     
     %% parameter for CNMF
-    parameter.npatches = 4;                      % how many patches are processed in parallel
-    K = 1200;                                    % first guess of the number of neurons to be found
+    parameter.npatches = 1;                      % how many patches are processed in parallel
+    K = 100;                                    % first guess of the number of neurons to be found
     parameter.K = ceil(K/parameter.npatches);                           
     parameter.tau = 8;                           % guess of average neuron radius (in pixel)
     

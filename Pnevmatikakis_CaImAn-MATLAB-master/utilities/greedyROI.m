@@ -141,6 +141,7 @@ for r = 1:length(K)
 
 
     %scan the whole image (only need to do this at the first iteration)
+    %%% rho obtains gaussian-filtered image - pixel value along one time can be used as calcium trace
     rho = imblur(Y, gSig, gSiz, dimY, save_memory, chunkSiz); %covariance of data and basis
     
     if ~params.rolling_sum
@@ -152,10 +153,10 @@ for r = 1:length(K)
         v = max(rho_s,[],dimY+1);
     end
     
-    for k = 1:K(r),    
-        if user_ROIs
+    for k = 1:K(r),
+        if user_ROIs                  %%% put in positions of maxima
             iHat = ROI_list(k,:);
-        else
+        else                          %%% find positions of maxima
             [~, ind] = max(v(:));
             %[iHat, jHat] = ind2sub([M, N], ind);
             iHat = zeros(1,dimY);
@@ -165,9 +166,10 @@ for r = 1:length(K)
 
         %iSig = [max(iHat - gHalf(1), 1), min(iHat + gHalf(1), M)]; iSigLen = iSig(2) - iSig(1) + 1;
         %jSig = [max(jHat - gHalf(2), 1), min(jHat + gHalf(2), N)]; jSigLen = jSig(2) - jSig(1) + 1;
+        %%% obtain window to run pseudo-NMF
         iSig = [max(iHat - gHalf,1)', min(iHat + gHalf,dx)']; iSigLen = iSig(:,2) - iSig(:,1) + 1;
             
-        %fine tune the shape
+        %%% obtain first guesses: temporal guess = value at center pixel, spatial guess = pixels, that fluctuate with center
         if dimY == 2
             dataTemp = Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), :);
             traceTemp = squeeze(rho(iHat(1), iHat(2), :));
@@ -175,26 +177,33 @@ for r = 1:length(K)
             dataTemp = Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), iSig(3,1):iSig(3,2), :);
             traceTemp = squeeze(rho(iHat(1), iHat(2), iHat(3), :));
         end
-        [coef, score] = finetune(dataTemp, traceTemp, nIter);        
-
-        dataSig = bsxfun(@times, coef, reshape(score, [ones(1,dimY),T]));
+        
+        [coef, score] = finetune(dataTemp, traceTemp, nIter);                 %%% run semi-NMF on first guess
+        dataSig = bsxfun(@times, coef, reshape(score, [ones(1,dimY),T]));     %%% reconstruct data from temp. and spat. guesses
         %[xSig,ySig] = meshgrid(iSig(1):iSig(2),jSig(1):jSig(2));
+        
+        %%% write spatial guess to basis
         basis = zeros(dx);
-        if dimY == 2;  basis(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2)) = coef; else  basis(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), iSig(3,1):iSig(3,2)) = coef; end
+        if dimY == 2
+          basis(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2)) = coef;
+        else
+          basis(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), iSig(3,1):iSig(3,2)) = coef;
+        end
         Atemp(:,k) = basis(:);
         %basis(sub2ind([M,N],xSig(:),ySig(:)),k) = coef(:);
         
-        trace(:, k) = score';
+        trace(:, k) = score';     %%% write first guess of temporal trace
         
+        %%% update residual
         if dimY == 2;
-            Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), :) = Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), :) - dataSig; %update residual
+            Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), :) = Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), :) - dataSig;
         else
             Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), iSig(3,1):iSig(3,2), :) = Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2),  iSig(3,1):iSig(3,2),:) - dataSig;
         end
         
         if mod(k,100) == 0; fprintf('found %i out of %i neurons..\n', k,K(r)); end
 
-        %get next basis;
+        %%% update rho and thus v to obtain next best ROI from greedy
         if k < K(r)
             %iMod = [max(iHat - 2 * gHalf(1), 1), min(iHat + 2 * gHalf(1), M)]; iModLen = iMod(2) - iMod(1) + 1;%patches to modify
             %jMod = [max(jHat - 2 * gHalf(2), 1), min(jHat + 2 * gHalf(2), N)]; jModLen = jMod(2) - jMod(1) + 1;

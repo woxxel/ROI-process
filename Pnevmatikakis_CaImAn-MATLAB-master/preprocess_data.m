@@ -121,8 +121,8 @@ if extract_max
     P.max_locs = LOCS;
     P.max_data = Ym;
 end
-%% estimate global time constants
 
+%% estimate global time constants
 if options.flag_g
     if ndims(Y) == 3
         Y_tmp = reshape(Y,size(Y,1)*size(Y,2),size(Y,3));

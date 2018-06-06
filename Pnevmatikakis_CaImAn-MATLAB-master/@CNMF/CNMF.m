@@ -31,7 +31,7 @@ classdef CNMF < handle
         options;                % options for model fitting
         gSig = [5,5];           % half size of neuron
         P;                      % some estimated parameters
-        fr = 30;                % frame rate in Hz
+        fr = 15;                % frame rate in Hz
         decay_time = 0.4;       % indicator decay time in seconds
         K;                      % number of components
         nb = 1;                 % number of background components

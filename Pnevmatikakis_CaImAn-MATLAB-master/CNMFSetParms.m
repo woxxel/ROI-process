@@ -387,7 +387,7 @@ Values = [
     {true}
     % parameters for max probability test (trace_fit_extreme.m)
     {0.9}
-    {30}
+    {15}
     {0.25}
     {1}
     % parameters for size based thresholding (classify_components.m)

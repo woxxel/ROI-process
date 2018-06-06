@@ -38,14 +38,7 @@ else
 end
 
 %% Set parameters
-%  overlap = [bitshift(sizY(1),-4),bitshift(sizY(2),-4)];
-%  patch_size = [ceil(sizY(1)/sqrt(npatches))+overlap(1)/2,ceil(sizY(2)/sqrt(npatches))+overlap(2)/2];
-%  patch_size = [ceil(sizY(1)/sqrt(npatches)),ceil(sizY(2)/sqrt(npatches))];
-
-%  patch_size = [272,272];                   % size of each patch along each dimension (optional, default: [32,32])
-%  overlap = [32,32];                        % amount of overlap in each dimension (optional, default: [4,4])
 patches = construct_patches(sizY(1:end-1),npatches);
-%  patches = construct_patches(sizY(1:end-1),patch_size,overlap);
 
 %  K = 300;                % number of components to be found
 %  %  tau = 8;                 % std of gaussian kernel (size of neuron) 
