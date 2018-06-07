@@ -42,8 +42,7 @@ function h52tiffstacks(pathFolder,nTiff)
   height = size(I,1);
   width = size(I,2);
   t = size(I,3);
-  size(I)
-  nStacks = ceil(t/nTiff)
+  nStacks = ceil(t/nTiff);
 
   %  img = zeros(height,width,nTiff,'uint16');
 
