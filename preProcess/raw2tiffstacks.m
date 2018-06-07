@@ -1,9 +1,9 @@
 
-function pathH5 = raw2tiffstacks(pathIn)
+function pathH5 = raw2tiffstacks(pathRaw)
   
   tic
-  pathConf = '/home/wollex/Data/Documents/Uni/2016-XXXX_PhD/Japan/Work/Data/512x512x8989.conf';
-  
+%    pathConf = '/home/wollex/Data/Documents/Uni/2016-XXXX_PhD/Japan/Work/Data/512x512x8989.conf';
+  pathConf = '/home/mizuta/AlexCode/512x512x8989.conf';
 %    pathRaw = dir(pathcat(pathIn,'*.raw'));
 %    pathRaw = pathcat(pathIn,pathRaw(1).name);
   [pathFolder,fileName,ext] = fileparts(pathRaw);

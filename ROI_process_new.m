@@ -34,10 +34,13 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
           create_tiff_stacks(pathTmp,path.images,1000);
         end
         
-        pathTmp = pathcat(path.session,'images');
+        pathTmp = pathcat(path.session,'imageStacks');
         if isempty(dir(pathcat(pathTmp,'*.tif')))
+%  	  disp('no tifs found')
           if ~isempty(dir(pathcat(pathTmp,'*.raw')))
-            raw2tiffstacks(pathIn);
+	    pathRaw = dir(pathcat(pathTmp,'*.raw'));
+	    pathRaw = pathcat(pathTmp,pathRaw.name);
+            raw2tiffstacks(pathRaw);
           end
         end
         
