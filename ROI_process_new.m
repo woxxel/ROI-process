@@ -46,7 +46,7 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
         
         %% median filtering
         if sz_median
-          if ~exist(path.median,'dir') || redo
+          if ~exist(path.median,'dir') || redo==5
               median_filter(path.images,path.median,parameter);
           else
               disp(sprintf('Path: %s already exists - skip median calculation',path.median))
@@ -58,7 +58,7 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
         
         % image alignment
         if do_dewarp
-          if ~exist(path.LKalign,'dir') || redo
+          if ~exist(path.LKalign,'dir') || redo>=4
               tiff_align(path.handover,path.LKalign);
           else
               disp(sprintf('Path: %s already exists - skip image dewarping',path.LKalign))
@@ -67,18 +67,19 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
         else
           disp('---- LK-dewarping disabled ----')
         end
-        
-        tiff2h5(path.handover,path.H5);
+        if ~exist(path.H5,'file') || redo>=3
+	  tiff2h5(path.handover,path.H5);
+	end
       end
       
-      if ~exist(path.reduced,'file') || redo
+      if ~exist(path.reduced,'file') || redo>=2
           reduce_data(path.H5,path);
       else
           disp(sprintf('Path: %s already exists - skip reduced image calculation',path.reduced))
       end
       
       
-      if ~exist(path.CNMF,'file') || redo
+      if ~exist(path.CNMF,'file') || redo>=1
           disp('do CNMF')
           CNMF_frame(path,parameter.npatches,parameter.K,parameter.tau,0);
       else
@@ -128,8 +129,8 @@ function [parameter] = set_parameter(sz_median)
     parameter.filtersize = [sz_median,sz_median,1];
     
     %% parameter for CNMF
-    parameter.npatches = 1;                      % how many patches are processed in parallel
-    K = 100;                                    % first guess of the number of neurons to be found
+    parameter.npatches = 4;                      % how many patches are processed in parallel
+    K = 1200;                                    % first guess of the number of neurons to be found
     parameter.K = ceil(K/parameter.npatches);                           
     parameter.tau = 8;                           % guess of average neuron radius (in pixel)
     
