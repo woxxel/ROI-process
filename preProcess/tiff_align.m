@@ -466,21 +466,21 @@ classdef tiff_align < handle
                 % find best shift
                 [ind_y,ind_x] = find(C == max(C(:)));
 		
-		if any(size(ind_x)==0)
-		  C
-		  img_T
-		  T_
-		  I_
-%  		  obj.mask
-		  [ind_x ind_y]
-		  sleep(10)
-		  
-%  		  dpx(ii,1) == 0;
-%  		  dpy(ii,1) == 0;
-		else
-		  dpx(ii,1) = ind_x - floor(obj.width/2+1);
-		  dpy(ii,1) = ind_y - floor(blocksize/2+1);
-		end
+                if any(size(ind_x)==0)
+%                    C
+%                    img_T
+%                    T_
+%                    I_
+        %  		  obj.mask
+                  [ind_x ind_y]
+        %  		  sleep(10)
+                  
+        %  		  dpx(ii,1) == 0;
+        %  		  dpy(ii,1) == 0;
+                else
+                  dpx(ii,1) = median(ind_x - floor(obj.width/2+1));
+                  dpy(ii,1) = median(ind_y - floor(blocksize/2+1));
+                end
             end
             
             % interpolate to get the knots
