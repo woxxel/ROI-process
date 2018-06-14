@@ -63,9 +63,9 @@ if ~isfield(options,'noise_norm') || isempty(options.noise_norm)
 end
 
 if nargin < 5
-    if options.noise_norm
-        warning('Normalization by noise value is not performed since noise values are not provided. \n');
-    end
+%      if options.noise_norm
+%          warning('Normalization by noise value is not performed since noise values are not provided. \n');
+%      end
     options.noise_norm = false;
 end
 

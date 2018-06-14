@@ -106,7 +106,7 @@ if memmaped
 %      for i = 1:n_patches
         patch_idx = patch_to_indices(patches{i});
         Yp = data.Y(patch_idx{:},:);
-        disp('process patch object')
+%          disp('process patch object')
         RESULTS(i) = process_patch_object(Yp,F_dark, K, p, tau, options);
         fprintf(['Finished processing patch # ',num2str(i),' out of ',num2str(n_patches), '.\n']);
         RESULTS(i).Y = [];

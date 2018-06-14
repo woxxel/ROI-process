@@ -9,10 +9,12 @@ function create_tiff_stacks(path,pathStacks,nTiff)
 
   %  path
   %  pathStacks
-  if exist(pathStacks,'dir')
-    rmdir(pathStacks,'s')
+%    if exist(pathStacks,'dir')
+%      rmdir(pathStacks,'s')
+%    end
+  if ~exist(pathStacks,'dir')
+    mkdir(pathStacks)
   end
-
 
   tiffs = struct;
   fileNames = dir(pathcat(path,'*.tif'));
@@ -29,7 +31,7 @@ function create_tiff_stacks(path,pathStacks,nTiff)
     nStacks = ceil(nframes/nTiff);
     
     [~, stackName, ~] = fileparts(file);
-    img(1:10,1:10,1)
+    
     for n = 1:nStacks
       idx_start = (n-1)*nTiff+1;
       idx_end = min(nframes,n*nTiff);

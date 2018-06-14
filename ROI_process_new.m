@@ -2,8 +2,8 @@
 
 function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
     
-    pathMouse = uigetdir('Choose a mouse folder to process (completely!)');
-%      pathMouse = '/media/wollex/Data/Documents/Uni/2016-XXXX_PhD/Japan/Work/Data/245';
+%      pathMouse = uigetdir('Choose a mouse folder to process (completely!)');
+    pathMouse = '/media/mizuta/Analyze_AS1/linstop/231';
 %      pathMouse = '/home/mizuta/AlexCode/test_data';
 %      pathMouse = sprintf('/media/mizuta/Analyze_AS1/%d',mouse);
 %      pathMouse = sprintf('/media/mizuta/Analyze_AS1/1-photon/%d',mouse);
@@ -23,76 +23,86 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
     
     for s = start_idx:end_idx
 	
-      path = set_paths(sessionList{s},suffix_MF,suffix_LK,suffix)
+      path = set_paths(sessionList{s},suffix_MF,suffix_LK,suffix);
       
-      disp(sprintf('\t ### Now processing session %d ###',s))
-      path.handover = path.images;
-      
-      if ~exist(path.H5,'file') || redo
-        if scattered
-          pathTmp = pathcat(path.session,'images');
-          create_tiff_stacks(pathTmp,path.images,1000);
-        end
-        
-        pathTmp = pathcat(path.session,'imageStacks');
-        if isempty(dir(pathcat(pathTmp,'*.tif')))
-%  	  disp('no tifs found')
-          if ~isempty(dir(pathcat(pathTmp,'*.raw')))
-	    pathRaw = dir(pathcat(pathTmp,'*.raw'));
-	    pathRaw = pathcat(pathTmp,pathRaw.name);
-            raw2tiffstacks(pathRaw);
-          end
-        end
-        
-        %% median filtering
-        if sz_median
-          if ~exist(path.median,'dir') || redo==5
-              median_filter(path.images,path.median,parameter);
-          else
-              disp(sprintf('Path: %s already exists - skip median calculation',path.median))
-          end
-          path.handover = path.median;
-        else
-          disp('---- median filtering disabled ----')
-        end
-        
-        % image alignment
-        if do_dewarp
-          if ~exist(path.LKalign,'dir') || redo>=4
-              tiff_align(path.handover,path.LKalign);
-          else
-              disp(sprintf('Path: %s already exists - skip image dewarping',path.LKalign))
-          end
-          path.handover = path.LKalign;
-        else
-          disp('---- LK-dewarping disabled ----')
-        end
-        if ~exist(path.H5,'file') || redo>=3
-	  tiff2h5(path.handover,path.H5);
+      if ~exist(path.CNMF,'file') || redo
+	
+	disp(sprintf('\t ### Now processing session %d ###',s))
+	path.handover = path.images;
+	
+	if ~exist(path.H5,'file') || redo
+	  if scattered
+  %            pathTmp = pathcat(path.session,'images');
+	    pathTmp = path.session;
+	    create_tiff_stacks(pathTmp,path.images,2000);
+	  end
+	  
+	  pathTmp = pathcat(path.session,'imageStacks');
+	  if isempty(dir(pathcat(pathTmp,'*.tif')))
+  %  	  disp('no tifs found')
+	    if ~isempty(dir(pathcat(pathTmp,'*.raw')))
+	      pathRaw = dir(pathcat(pathTmp,'*.raw'));
+	      pathRaw = pathcat(pathTmp,pathRaw.name);
+	      raw2tiffstacks(pathRaw);
+	    end
+	  end
+	  
+	  %% median filtering
+	  if sz_median
+	    if ~exist(path.median,'dir') || redo==5
+		median_filter(path.images,path.median,parameter);
+	    else
+		disp(sprintf('Path: %s already exists - skip median calculation',path.median))
+	    end
+	    path.handover = path.median;
+	  else
+	    disp('---- median filtering disabled ----')
+	  end
+	  
+	  % image alignment
+	  if do_dewarp
+	    if ~exist(path.LKalign,'dir') || redo>=4
+		tiff_align(path.handover,path.LKalign);
+	    else
+		disp(sprintf('Path: %s already exists - skip image dewarping',path.LKalign))
+	    end
+	    path.handover = path.LKalign;
+	  else
+	    disp('---- LK-dewarping disabled ----')
+	  end
+	  if ~exist(path.H5,'file') || redo>=3
+	    tiff2h5(path.handover,path.H5);
+	  end
+	end
+	
+	if ~exist(path.reduced,'file') || redo>=2
+	    reduce_data(path.H5,path);
+	else
+	    disp(sprintf('Path: %s already exists - skip reduced image calculation',path.reduced))
+	end
+	
+	
+	if ~exist(path.CNMF,'file') || redo>=1
+	    disp('do CNMF')
+	    CNMF_frame(path,parameter.npatches,parameter.K,parameter.tau,0);
+	else
+	    disp(sprintf('Path: %s already exists - skip CNMF',path.CNMF))
 	end
       end
-      
-      if ~exist(path.reduced,'file') || redo>=2
-          reduce_data(path.H5,path);
-      else
-          disp(sprintf('Path: %s already exists - skip reduced image calculation',path.reduced))
-      end
-      
-      
-      if ~exist(path.CNMF,'file') || redo>=1
-          disp('do CNMF')
-          CNMF_frame(path,parameter.npatches,parameter.K,parameter.tau,0);
-      else
-          disp(sprintf('Path: %s already exists - skip CNMF',path.CNMF))
-      end
-      
       
 %        if ~exist(path.CNMF_post,'file')
 %            ROI_post_procession_CNMF(path,parameter);
 %        else
 %            disp(sprintf('Path: %s already exists - skip CNMF post-procession',path.CNMF_post))
 %        end
-%        rmdir(path.images,'s');
+      try
+	rmdir(path.images,'s');
+      catch
+      end
+      try
+	delete(path.H5)
+      catch
+      end
     end
 end
 
@@ -111,7 +121,7 @@ function [parameter] = set_parameter(sz_median)
     
     %% parameter for CNMF
     parameter.npatches = 4;                      % how many patches are processed in parallel
-    K = 1200;                                    % first guess of the number of neurons to be found
+    K = 1600;                                    % first guess of the number of neurons to be found
     parameter.K = ceil(K/parameter.npatches);                           
     parameter.tau = 8;                           % guess of average neuron radius (in pixel)
     
