@@ -49,8 +49,6 @@ function median_filter(pathImages,pathMedian,parameter)
     options.overwrite = true;
     options.big       = false;
     
-    disp('read information')
-    
     [prg_str1 prg_str2] = prepare_progress_report('images processed: ',T);
     
     t_total = 0;
@@ -104,5 +102,5 @@ function median_filter(pathImages,pathMedian,parameter)
         tiffs(i).tifflib.close;
     end
     
-    disp('')
+    disp('\n')
 end

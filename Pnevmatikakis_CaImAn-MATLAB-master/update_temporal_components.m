@@ -273,10 +273,11 @@ if options.temporal_parallel
                     end                
                 end
             end
-            if mod(jo,10)==0
-	      fprintf('%i out of %i components updated \n',sum(lo(1:jo)),K);
-	    end
+%              if mod(jo,10)==0
+%  	      fprintf('%i out of %i components updated \n',sum(lo(1:jo)),K);
+%  	    end
         end
+        fprintf('%i out of %i components updated \n',sum(lo(1:jo)),K);
         for ii = K + 1:size(C,1)
             cc = max(C(ii,:) + AY(ii,:) - AA(ii,:)*C,0);
             %cc = full(max(AY(ii,:)+Cin(ii,:),0));
@@ -386,10 +387,11 @@ else
                 C(ii,:) = full(cc');
                 %YrA(:,ii) = YrA(:,ii) - C(ii,:)';
             end
-            if mod(jj,100) == 0
-                fprintf('%i out of total %i temporal components updated \n',jj,K);
-            end
+%              if mod(jj,100) == 0
+%                  fprintf('%i out of total %i temporal components updated \n',jj,K);
+%              end
         end
+        fprintf('%i out of total %i temporal components updated \n',jj,K);
         if norm(Cin - C,'fro')/norm(C,'fro') <= 1e-3
             % stop if the overall temporal component does not change by much
             break;

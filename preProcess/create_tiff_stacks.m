@@ -9,10 +9,12 @@ function create_tiff_stacks(path,pathStacks,nTiff)
 
   %  path
   %  pathStacks
-  if exist(pathStacks,'dir')
-    rmdir(pathStacks,'s')
+%    if exist(pathStacks,'dir')
+%      rmdir(pathStacks,'s')
+%    end
+  if ~exist(pathStacks,'dir')
+    mkdir(pathStacks)
   end
-
 
   tiffs = struct;
   fileNames = dir(pathcat(path,'*.tif'));
@@ -23,13 +25,13 @@ function create_tiff_stacks(path,pathStacks,nTiff)
   height = tiffs.InfoImage.Height;
 
   if length(fileNames) == 1   %% only one tiff stack present -> burst
-    nframes = 8989;
-    [img, nframes] = imread_big(file,nframes);
     
+    img = loadtiff(file);
+    nframes = size(img,3);
     nStacks = ceil(nframes/nTiff);
     
     [~, stackName, ~] = fileparts(file);
-    img(1:10,1:10,1)
+    
     for n = 1:nStacks
       idx_start = (n-1)*nTiff+1;
       idx_end = min(nframes,n*nTiff);

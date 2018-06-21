@@ -6,31 +6,15 @@ function reduce_data(pathImages,path)
     gcp;
     
     im = h5read(pathImages,'/DATA');
-    size(im)
-    whos im
     width = size(im,2);
     height = size(im,1);
     bitDepth = 16;
-%      im = double(im/(2^bitDepth));
     
-%      if tiffs(1).InfoImage(1).BitDepth == 8
-%        bitDepth = 'uint8'
-%      elseif tiffs(1).InfoImage(1).BitDepth == 16
-%        bitDepth = 'uint16'
-%      else
-%        bitDepth = 'double'
-%      end
-    
-    disp('reading done')
-    
-    tic
+%      tic
     max_im = zeros(height,width);
     ave_im = zeros(height,width);
     %% calculate MAX, MEDIAN and AVERAGE along one pixel
     parfor i = 1:height
-      if mod(i,100)==0
-        disp(i)
-      end
       median_tmp = median(im(i,:,:),3);
       max_im(i,:) = max(im(i,:,:),[],3)-median_tmp;
       ave_im(i,:) = uint16(mean(im(i,:,:),3))-median_tmp;
@@ -42,5 +26,5 @@ function reduce_data(pathImages,path)
     
     save(path.reduced,'max_im','ave_im','-v7.3');
     
-    toc
+%      toc
 end

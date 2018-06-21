@@ -107,8 +107,8 @@ Tint = 1:med_app:T;
 if dimY == 2; med = prctile(Y(:,:,Tint),params.rem_prct, 3); else med = prctile(Y(:,:,:,Tint),params.rem_prct,4); end
 
 % end
-disp('(initialize) components to be found:')
-K
+%  disp('(initialize) components to be found:')
+%  K
 
 Y = bsxfun(@minus, Y, med);
 if iscell(params.gSig); params.gSig = cell2mat(params.gSig); params.gSiz = cell2mat(params.gSiz); end
@@ -201,7 +201,7 @@ for r = 1:length(K)
             Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2), iSig(3,1):iSig(3,2), :) = Y(iSig(1,1):iSig(1,2), iSig(2,1):iSig(2,2),  iSig(3,1):iSig(3,2),:) - dataSig;
         end
         
-        if mod(k,100) == 0; fprintf('found %i out of %i neurons..\n', k,K(r)); end
+%          if mod(k,100) == 0; fprintf('found %i out of %i neurons..\n', k,K(r)); end
 
         %%% update rho and thus v to obtain next best ROI from greedy
         if k < K(r)
