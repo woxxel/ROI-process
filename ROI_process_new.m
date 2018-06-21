@@ -1,11 +1,12 @@
 
 
-function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo,pathMouse)
+function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,makeStacks,redo,pathMouse)
     
+    %% if no path is provided, search mousefolder by GUI
     if nargin < 7
-      pathMouse = uigetdir('Choose a mouse folder to process (completely!)');
+      pathMouse = uigetdir('Choose a mouse folder to process');
     end
-%      pathMouse = '/media/mizuta/Analyze_AS1/linstop/';
+%      pathMouse = '/media/mizuta/Analyze_AS1/linstop/231';
     [sessionList, nSessions] = getSessions(pathMouse);
     
     %% construct suffix for filenames if not specified
@@ -26,10 +27,10 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo,pa
 	path.handover = path.images;
 	
 	if ~exist(path.H5,'file') || redo
-	  if scattered
+	  if makeStacks
   %            pathTmp = pathcat(path.session,'images');
 	    pathTmp = path.session;
-	    create_tiff_stacks(pathTmp,path.images,2000);
+	    create_tiff_stacks(pathTmp,path.images,parameter.nsubFiles);
 	  end
 	  
 	  pathTmp = pathcat(path.session,'imageStacks');
@@ -121,15 +122,15 @@ function [parameter] = set_parameter(sz_median)
     parameter.tau = 8;                           % guess of average neuron radius (in pixel)
     
     %% parameter for post-procession
-    parameter.sd = 40;                 % multiple of STD for thresholding ROI images
-    parameter.thr_size = [20 400];     % upper and lower threshold for ROI size (realistic pyramidal neuron size ~20mum length, wikipedia)
-    parameter.thr_pos = [5 507];       % threshold for ROI-position (5 off the border)
-    parameter.perc = 0.2;              % threshold for fraction of common pixels between ROIs
+%      parameter.sd = 40;                 % multiple of STD for thresholding ROI images
+%      parameter.thr_size = [20 400];     % upper and lower threshold for ROI size (realistic pyramidal neuron size ~20mum length, wikipedia)
+%      parameter.thr_pos = [5 507];       % threshold for ROI-position (5 off the border)
+%      parameter.perc = 0.2;              % threshold for fraction of common pixels between ROIs
     
     %% parameter for session matching
-    parameter.max_dist = 12;
-    parameter.num_ses_thr = 3;
-    parameter.SI_thr = 0.5;
+%      parameter.max_dist = 12;
+%      parameter.num_ses_thr = 3;
+%      parameter.SI_thr = 0.5;
 end
 
 
