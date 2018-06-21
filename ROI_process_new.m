@@ -1,29 +1,24 @@
 
 
-function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo)
+function ROI_process_new(start_idx,end_idx,sz_median,do_dewarp,scattered,redo,pathMouse)
     
-%      pathMouse = uigetdir('Choose a mouse folder to process (completely!)');
-    pathMouse = '/media/mizuta/Analyze_AS1/linstop/231';
-%      pathMouse = '/home/mizuta/AlexCode/test_data';
-%      pathMouse = sprintf('/media/mizuta/Analyze_AS1/%d',mouse);
-%      pathMouse = sprintf('/media/mizuta/Analyze_AS1/1-photon/%d',mouse);
+    if nargin < 7
+      pathMouse = uigetdir('Choose a mouse folder to process (completely!)');
+    end
+%      pathMouse = '/media/mizuta/Analyze_AS1/linstop/';
     [sessionList, nSessions] = getSessions(pathMouse);
     
     %% construct suffix for filenames if not specified
-%      if (nargin < 5)
-      suffix_MF = sprintf('_MF%d',sz_median);
-      suffix_LK = sprintf('_LK%d',do_dewarp);
-      suffix = sprintf('%s%s',suffix_MF,suffix_LK);
-%      else
-%        suffix_MF = '';
-%        suffix_LK = '';
-%      end
+    suffix_MF = sprintf('_MF%d',sz_median);
+    suffix_LK = sprintf('_LK%d',do_dewarp);
+    suffix = sprintf('%s%s',suffix_MF,suffix_LK);
     
     parameter = set_parameter(sz_median);
     
     for s = start_idx:end_idx
-	
-      path = set_paths(sessionList{s},suffix_MF,suffix_LK,suffix);
+      
+      pathSession = pathcat(pathMouse,sprintf('Session%02d',s));
+      path = set_paths(pathSession,suffix_MF,suffix_LK,suffix);
       
       if ~exist(path.CNMF,'file') || redo
 	

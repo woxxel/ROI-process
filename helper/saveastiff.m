@@ -258,6 +258,7 @@ end
 
 for d = 1:depth
     tfile.setTag(tagstruct);
+%      [d depth]
     tfile.write(data(:, :, :, d));
     if d ~= depth
        tfile.writeDirectory();

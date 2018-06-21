@@ -25,9 +25,9 @@ function create_tiff_stacks(path,pathStacks,nTiff)
   height = tiffs.InfoImage.Height;
 
   if length(fileNames) == 1   %% only one tiff stack present -> burst
-    nframes = 8989;
-    [img, nframes] = imread_big(file,nframes);
     
+    img = loadtiff(file);
+    nframes = size(img,3);
     nStacks = ceil(nframes/nTiff);
     
     [~, stackName, ~] = fileparts(file);
