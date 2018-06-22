@@ -10,7 +10,7 @@
 
 %%% programm should load data from cropped h5 file and find positions of A in cropped region
 
-function [A2,C2,keep] = run_CNMF_fill(path,A_in)
+function [A,C,keep,fitness] = run_CNMF_fill(path,A_in)
   
 %    clear;
   tic
@@ -147,68 +147,77 @@ function [A2,C2,keep] = run_CNMF_fill(path,A_in)
   end     
   
   %% event exceptionality
-  
   fitness = compute_event_exceptionality(C+YrA,options.N_samples_exc,options.robust_std);
   ind_exc = (fitness < options.min_fitness);
   
+  keep = [ind_corr,ind_cnn,ind_exc];
   %% select components
-  keep = (ind_corr | ind_cnn) & ind_exc;
-  
-  %% display kept and discarded components
-  A_keep = A(:,keep);
-  C_keep = C(keep,:);
-  
-%    figure;
-%        subplot(121); montage(extract_patch(A(:,keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15]);
-%            title('Kept Components');
-%        subplot(122); montage(extract_patch(A(:,~keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15])
-%            title('Discarded Components');
-  %% merge found components
-  [Am,Cm,K_m,merged_ROIs,Pm,Sm] = merge_components(Yr,A_keep,b,C_keep,f,P,S,options);
-  
-  %%
-  display_merging = false; % flag for displaying merging example
-  if and(display_merging, ~isempty(merged_ROIs))
-      i = 1; %randi(length(merged_ROIs));
-      ln = length(merged_ROIs{i});
-      figure;
-          set(gcf,'Position',[300,300,(ln+2)*300,300]);
-          for j = 1:ln
-              subplot(1,ln+2,j); imagesc(reshape(A_keep(:,merged_ROIs{i}(j)),d1,d2)); 
-                  title(sprintf('Component %i',j),'fontsize',16,'fontweight','bold'); axis equal; axis tight;
-          end
-          subplot(1,ln+2,ln+1); imagesc(reshape(Am(:,K_m-length(merged_ROIs)+i),d1,d2));
-                  title('Merged Component','fontsize',16,'fontweight','bold');axis equal; axis tight; 
-          subplot(1,ln+2,ln+2);
-              plot(1:T,(diag(max(C_keep(merged_ROIs{i},:),[],2))\C_keep(merged_ROIs{i},:))'); 
-              hold all; plot(1:T,Cm(K_m-length(merged_ROIs)+i,:)/max(Cm(K_m-length(merged_ROIs)+i,:)),'--k')
-              title('Temporal Components','fontsize',16,'fontweight','bold')
-          drawnow;
-  end
-
-  %% refine estimates excluding rejected components
-
-  Pm.p = p;    % restore AR value
-  [A2,b2,C2] = update_spatial_components(Yr,Cm,f,[Am,b],Pm,options);
-  [C2,f2,P2,S2,YrA2] = update_temporal_components(Yr,A2,b2,C2,f,Pm,options);
-
-
-%    %% do some plotting
-%    [A_or,C_or,S_or,P_or] = order_ROIs(A2,C2,S2,P2); % order components
-%    K_m = size(C_or,1);
-%    [C_df,~] = extract_DF_F(Yr,A_or,C_or,P_or,options); % extract DF/F values (optional)
-
-%    figure;
-%    [Coor,json_file] = plot_contours(A_or,Cn,options,1); % contour plot of spatial footprints
-  %savejson('jmesh',json_file,'filename');        % optional save json file with component coordinates (requires matlab json library)
-
-  %% display components
-
-%    plot_components_GUI(Yr,A_or,C_or,b2,f2,Cn,options);
-
-  %% make movie
-  if (0)  
-      make_patch_video(A_or,C_or,b2,f2,Yr,Coor,options)
-  end
-  toc
+%    keep = (ind_corr | ind_cnn) & ind_exc;
+%    
+%    %% display kept and discarded components
+%    A_keep = A(:,keep);
+%    C_keep = C(keep,:);
+%    
+%  %    figure;
+%  %        subplot(121); montage(extract_patch(A(:,keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15]);
+%  %            title('Kept Components');
+%  %        subplot(122); montage(extract_patch(A(:,~keep),[d1,d2],[30,30]),'DisplayRange',[0,0.15])
+%  %            title('Discarded Components');
+%    
+%    %% merge found components
+%  %    [Am,Cm,K_m,merged_ROIs,Pm,Sm] = merge_components(Yr,A_keep,b,C_keep,f,P,S,options);
+%    [Am,Cm,K_m,merged_ROIs,Pm,Sm] = merge_components(Yr,A,b,C,f,P,S,options);
+%    
+%    %%
+%    display_merging = true; % flag for displaying merging example
+%    if and(display_merging, ~isempty(merged_ROIs))
+%        disp('plot')
+%        i = 1; %randi(length(merged_ROIs));
+%        ln = length(merged_ROIs{i});
+%        figure;
+%            set(gcf,'Position',[300,300,(ln+2)*300,300]);
+%            for j = 1:ln
+%  %                subplot(1,ln+2,j); imagesc(reshape(A_keep(:,merged_ROIs{i}(j)),d1,d2)); 
+%  %                hold on
+%                subplot(1,ln+2,j); imagesc(reshape(A(:,merged_ROIs{i}(j)),d1,d2)); 
+%  %                subplot(1,ln+2,j); imagesc(reshape(A_in(:,merged_ROIs{i}(j)),d1,d2)); 
+%                    title(sprintf('Component %i',j),'fontsize',16,'fontweight','bold'); axis equal; axis tight;
+%            end
+%            subplot(1,ln+2,ln+1); imagesc(reshape(Am(:,K_m-length(merged_ROIs)+i),d1,d2));
+%                    title('Merged Component','fontsize',16,'fontweight','bold');axis equal; axis tight; 
+%            subplot(1,ln+2,ln+2);
+%  %                plot(1:T,(diag(max(C_keep(merged_ROIs{i},:),[],2))\C_keep(merged_ROIs{i},:))'); 
+%                hold on
+%                plot(1:T,(diag(max(C(merged_ROIs{i},:),[],2))\C(merged_ROIs{i},:))'); 
+%                plot(1:T,(diag(max(C_in(merged_ROIs{i},:),[],2))\C_in(merged_ROIs{i},:))','r'); 
+%                hold all; plot(1:T,Cm(K_m-length(merged_ROIs)+i,:)/max(Cm(K_m-length(merged_ROIs)+i,:)),'--k')
+%                title('Temporal Components','fontsize',16,'fontweight','bold')
+%            drawnow;
+%    end
+%  
+%    %% refine estimates excluding rejected components
+%  
+%    Pm.p = p;    % restore AR value
+%    [A2,b2,C2] = update_spatial_components(Yr,Cm,f,[Am,b],Pm,options);
+%    [C2,f2,P2,S2,YrA2] = update_temporal_components(Yr,A2,b2,C2,f,Pm,options);
+%  
+%  
+%  %    %% do some plotting
+%  %    [A_or,C_or,S_or,P_or] = order_ROIs(A2,C2,S2,P2); % order components
+%  %    K_m = size(C_or,1);
+%  %    [C_df,~] = extract_DF_F(Yr,A_or,C_or,P_or,options); % extract DF/F values (optional)
+%  
+%  %    figure;
+%  %    [Coor,json_file] = plot_contours(A_or,Cn,options,1); % contour plot of spatial footprints
+%    %savejson('jmesh',json_file,'filename');        % optional save json file with component coordinates (requires matlab json library)
+%  
+%    %% display components
+%  
+%  %    plot_components_GUI(Yr,A_or,C_or,b2,f2,Cn,options);
+%  
+%    %% make movie
+%    if (0)  
+%        make_patch_video(A_or,C_or,b2,f2,Yr,Coor,options)
+%    end
+%    toc
 end
