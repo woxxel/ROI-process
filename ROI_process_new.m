@@ -19,7 +19,7 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_align,makeStacks,redo,cl
     for s = start_idx:end_idx
       
       pathSession = pathcat(pathMouse,sprintf('Session%02d',s));
-      path = set_paths(pathSession,suffix_MF,suffix_LK,suffix);
+      path = set_paths(pathSession,suffix_MF,suffix_LK,suffix)
       
       if ~exist(path.CNMF,'file') || redo
 	
@@ -28,8 +28,8 @@ function ROI_process_new(start_idx,end_idx,sz_median,do_align,makeStacks,redo,cl
         
         if ~exist(path.H5,'file') || redo
           if makeStacks
-            pathTmp = pathcat(path.session,'images');
-    %  	    pathTmp = path.session;
+%              pathTmp = pathcat(path.session,'images');
+    	    pathTmp = path.session;
             create_tiff_stacks(pathTmp,path.images,parameter.nsubFiles);
           end
           

@@ -27,6 +27,9 @@ function create_tiff_stacks(path,pathStacks,nTiff)
   if length(fileNames) == 1   %% only one tiff stack present -> burst
     
     img = loadtiff(file);
+    if length(size(img))==2
+      img = imread_big(file,8989);
+    end
     nframes = size(img,3);
     nStacks = ceil(nframes/nTiff);
     
