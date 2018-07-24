@@ -51,18 +51,20 @@ function create_tiff_stacks(path,pathStacks,nTiff)
       disp('tiffs are already in stacks - still want to proceed?')
     else
       
+      nframes = length(fileNames);
       [~, stackName, ~] = fileparts(file);
       stackName = stackName(1:end-5);
       img = zeros(height,width,nTiff,'uint16');
       
+      n=0;
       c=1;
-      for i = 1:length(nframes)
+      for i = 1:nframes
           
           file = fileNames(i).name;
-          tiffld = Tiff(pathcat(path,file),'r');
-          img(:,:,c) = tiffld.read;
+          img(:,:,c) = loadtiff(pathcat(path,file));
           
           if mod(c,nTiff)==0 || i==length(fileNames)
+            n=n+1;
             svFile = pathcat(pathStacks,sprintf('%s_%02d.tif',stackName,n));
             disp(sprintf('tiff-stack #%d saved to %s',n,svFile))
             saveastiff(img(:,:,1:c),svFile);
